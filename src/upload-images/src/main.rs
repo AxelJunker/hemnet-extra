@@ -49,10 +49,10 @@ async fn main() -> Result<(), Error> {
     }
 }
 
-pub(crate) async fn upload_images_handler(_: Value, _: Context) -> Result<(), Error> {
+pub(crate) async fn upload_images_handler(_: Value, _: Context) -> Result<(), String> {
     log::info!("Running upload_images_handler");
 
-    Ok(())
+    Err("ERROR!!!".to_string())
 }
 
 async fn upload_images_handler_local() -> Result<(), Error> {
@@ -62,24 +62,62 @@ async fn upload_images_handler_local() -> Result<(), Error> {
 }
 
 async fn fetch_hemnet_search_key() -> Result<String, String> {
-    let body =
-        reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
-            .await
-            .map_err(|err| "GET search key failed".to_string())?
-            .text()
-            .await
-            .map_err(|err| "GET search key text failed".to_string())?;
+    // let body =
+    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
+    //         .await?
+    //         .text()
+    //         .await?;
+    //
+    // Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
+    //     .map_err(|x| "Couldn't create regex".to_string())
+    //     .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
+    //     .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
+    //     .map(|y| {
+    //         let search_key = y.as_str().to_string();
+    //         log::info!("Search key: {}", search_key);
+    //         return search_key;
+    //     })
 
-    let look_for_text = "search_key&quot;:&quot;";
-    let regex_string = format!("{}{}", look_for_text, "([a-z0-9]*)");
-
-    Regex::new(&regex_string)
-        .map_err(|x| "Couldn't create regex".to_string())
-        .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
-        .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
-        .map(|y| {
-            let search_key = y.as_str().to_string();
-            log::info!("Search key: {}", search_key);
-            return search_key;
-        })
+    Ok("hej".to_string())
+    // let response_result =
+    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
+    //         .await;
+    //
+    // return match response_result {
+    //     Ok(response) => match response.text().await {
+    //         Ok(body) => Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
+    //             .map_err(|x| "Couldn't create regex".to_string())
+    //             .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
+    //             .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
+    //             .map(|y| y.as_str().to_string()),
+    //         Err(x) => Err("err".to_string()),
+    //     },
+    //     Err(x) => Err("err".to_string()),
+    // };
+    //
+    // Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
+    //     .map_err(|x| "Couldn't create regex".to_string())
+    //     .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
+    //     .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
+    //     .map(|y| {
+    //         let search_key = y.as_str().to_string();
+    //         log::info!("Search key: {}", search_key);
+    //         return search_key;
+    //     })
+    //
+    // let body =
+    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
+    //         .await?
+    //         .text()
+    //         .await?;
+    //
+    // let matchi = Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")?
+    //     .captures(&body)
+    //     .unwrap()
+    //     .get(1)
+    //     .unwrap();
+    //
+    // let search_key = matchi.as_str().to_string();
+    // log::info!("Search key: {}", search_key);
+    // return Ok(search_key);
 }

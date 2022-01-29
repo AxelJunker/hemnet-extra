@@ -12,7 +12,7 @@ serde = "1.0.130"
 serde_json = "1.0.59"
 simple_logger = "1.13.0"
 tokio = "1.8.4"
-reqwest = "0.11.9"
+reqwest = { version = "0.11.9", default-features = false}
 regex = "1"
 uuid = "0.8.2"
 

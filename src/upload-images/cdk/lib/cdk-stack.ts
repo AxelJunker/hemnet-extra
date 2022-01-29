@@ -1,28 +1,13 @@
-// import { Stack, StackProps } from "aws-cdk-lib";
-// import { Construct } from "constructs";
 import * as cdk from "@aws-cdk/core";
 import * as lambda from "@aws-cdk/aws-lambda";
 import * as targets from "@aws-cdk/aws-events-targets";
 import * as events from "@aws-cdk/aws-events";
 
-// export class CdkStack extends Stack {
-//   constructor(scope: Construct, id: string, props?: StackProps) {
-//     super(scope, id, props);
-//
-//     // The code that defines your stack goes here
-//
-//     // example resource
-//     // const queue = new sqs.Queue(this, 'CdkQueue', {
-//     //   visibilityTimeout: cdk.Duration.seconds(300)
-//     // });
-//   }
-// }
-//
 export class UploadImagesLambdaStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const target = "x86_64-unknown-linux-musl";
+    const target = "x86_64-unknown-linux-gnu";
 
     const uploadImagesLambda = new lambda.Function(
       this,
