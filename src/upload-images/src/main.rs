@@ -126,7 +126,7 @@ async fn fetch_hemnet_search_key() -> Result<String, Error> {
     let regex_str = "search_key&quot;:&quot;([a-z0-9]*)&";
     let regex = Regex::new(regex_str)?;
 
-    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966";
+    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=asdf33094966";
     let body = get_body(url).await?;
 
     let captures = regex.captures(&body).ok_or(RegexNoCaptures)?;
@@ -141,5 +141,10 @@ async fn fetch_hemnet_search_key() -> Result<String, Error> {
 }
 
 async fn get_body(url: &str) -> Result<String, reqwest::Error> {
-    reqwest::get(url).await?.text().await
+    let result = reqwest::get(url).await?.error_for_status();
+
+    match result {
+        Ok(response) => response.text().await,
+        Err(err) => Err(err),
+    }
 }
