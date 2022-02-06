@@ -1,11 +1,16 @@
-use lambda_runtime::{handler_fn, Context, Error};
+use lambda_runtime::{run, service_fn, Context, LambdaEvent};
 use log::LevelFilter;
 // use serde::{Deserialize, Serialize};
 use regex::Regex;
+use reqwest;
 use serde_json::Value;
 use simple_logger::SimpleLogger;
 use std::env;
-use uuid::Uuid;
+// use uuid::Uuid;
+use crate::Error::{RegexCreate, RegexNoCaptureGroup, RegexNoCaptures, RequestError, SetLogger};
+use backtrace::Backtrace;
+use std::error;
+use std::fmt;
 
 /// This is also a made-up example. Requests come into the runtime as unicode
 /// strings in json format, which can map to any structure that implements `serde::Deserialize`
@@ -33,91 +38,108 @@ use uuid::Uuid;
 //     msg: String,
 // }
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    // required to enable CloudWatch error logging by the runtime
-    // can be replaced with any other method of initializing `log`
-    SimpleLogger::new()
-        .with_utc_timestamps()
-        .with_level(LevelFilter::Info)
-        .init()
-        .unwrap();
+#[derive(Debug)]
+enum Error {
+    // LambdaRun(String),
+    SetLogger(log::SetLoggerError),
+    RegexCreate(regex::Error),
+    RegexNoCaptures,
+    RegexNoCaptureGroup,
+    RequestError(reqwest::Error),
+}
 
-    match env::var("AWS_LAMBDA_RUNTIME_API") {
-        Ok(_) => lambda_runtime::run(handler_fn(upload_images_handler)).await,
-        _ => upload_images_handler_local().await,
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::SetLogger(..) => write!(f, "failed to initialize logger"),
+            Error::RegexCreate(..) => write!(f, "couldn't create regex"),
+            Error::RegexNoCaptures => write!(f, "no captures"),
+            Error::RegexNoCaptureGroup => write!(f, "no capture group"),
+            // The wrapped error contains additional information and is available
+            // via the source() method.
+            Error::RequestError(err) => write!(f, "request error"),
+        }
     }
 }
 
-pub(crate) async fn upload_images_handler(_: Value, _: Context) -> Result<(), String> {
-    log::info!("Running upload_images_handler");
-
-    Err("ERROR!!!".to_string())
+impl error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::SetLogger(e) => Some(e),
+            Error::RegexCreate(e) => Some(e),
+            Error::RegexNoCaptures => None,
+            Error::RegexNoCaptureGroup => None,
+            // The cause is the underlying implementation error type. Is implicitly
+            // cast to the trait object `&error::Error`. This works because the
+            // underlying type already implements the `Error` trait.
+            Error::RequestError(e) => Some(e),
+        }
+    }
 }
 
-async fn upload_images_handler_local() -> Result<(), Error> {
-    log::info!("Running upload_images_handler_localzz");
+// Implement the conversion from `Error` to `error::Error`.
+// This will be automatically called by `?` if a `Error`
+// needs to be converted into a `error::Error`.
+impl From<regex::Error> for Error {
+    fn from(err: regex::Error) -> Error {
+        Error::RegexCreate(err)
+    }
+}
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error {
+        Error::RequestError(err)
+    }
+}
+impl From<log::SetLoggerError> for Error {
+    fn from(err: log::SetLoggerError) -> Error {
+        Error::SetLogger(err)
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), lambda_runtime::Error> {
+    match env::var("AWS_LAMBDA_RUNTIME_API") {
+        Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
+        _ => handler().await,
+    }
+}
+
+async fn handler() -> Result<(), lambda_runtime::Error> {
+    upload_images().await.map_err(|err| Box::from(err))
+}
+
+async fn upload_images() -> Result<(), Error> {
+    // Required to enable CloudWatch error logging by the runtime.
+    // Can be replaced with any other method of initializing `log`.
+    SimpleLogger::new()
+        .with_utc_timestamps()
+        .with_level(LevelFilter::Info)
+        .init()?;
+
+    log::info!("Running upload_images_handler");
+
     fetch_hemnet_search_key().await?;
     Ok(())
 }
 
-async fn fetch_hemnet_search_key() -> Result<String, String> {
-    // let body =
-    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
-    //         .await?
-    //         .text()
-    //         .await?;
-    //
-    // Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
-    //     .map_err(|x| "Couldn't create regex".to_string())
-    //     .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
-    //     .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
-    //     .map(|y| {
-    //         let search_key = y.as_str().to_string();
-    //         log::info!("Search key: {}", search_key);
-    //         return search_key;
-    //     })
+async fn fetch_hemnet_search_key() -> Result<String, Error> {
+    let regex_str = "search_key&quot;:&quot;([a-z0-9]*)&";
+    let regex = Regex::new(regex_str)?;
 
-    Ok("hej".to_string())
-    // let response_result =
-    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
-    //         .await;
-    //
-    // return match response_result {
-    //     Ok(response) => match response.text().await {
-    //         Ok(body) => Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
-    //             .map_err(|x| "Couldn't create regex".to_string())
-    //             .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
-    //             .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
-    //             .map(|y| y.as_str().to_string()),
-    //         Err(x) => Err("err".to_string()),
-    //     },
-    //     Err(x) => Err("err".to_string()),
-    // };
-    //
-    // Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")
-    //     .map_err(|x| "Couldn't create regex".to_string())
-    //     .and_then(|regex| regex.captures(&body).ok_or("No captures".to_string()))
-    //     .and_then(|x| x.get(1).ok_or("No capture group".to_string()))
-    //     .map(|y| {
-    //         let search_key = y.as_str().to_string();
-    //         log::info!("Search key: {}", search_key);
-    //         return search_key;
-    //     })
-    //
-    // let body =
-    //     reqwest::get("https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966")
-    //         .await?
-    //         .text()
-    //         .await?;
-    //
-    // let matchi = Regex::new("search_key&quot;:&quot;([a-z0-9]*)&")?
-    //     .captures(&body)
-    //     .unwrap()
-    //     .get(1)
-    //     .unwrap();
-    //
-    // let search_key = matchi.as_str().to_string();
-    // log::info!("Search key: {}", search_key);
-    // return Ok(search_key);
+    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966";
+    let body = get_body(url).await?;
+
+    let captures = regex.captures(&body).ok_or(RegexNoCaptures)?;
+
+    let capture_group = captures.get(4).ok_or(RegexNoCaptureGroup)?;
+
+    let search_key = capture_group.as_str().to_string();
+
+    log::info!("Search key: {}", search_key);
+
+    Ok(search_key)
+}
+
+async fn get_body(url: &str) -> Result<String, reqwest::Error> {
+    reqwest::get(url).await?.text().await
 }

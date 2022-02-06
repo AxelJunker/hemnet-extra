@@ -2,4 +2,5 @@
 .idea
 **/node_modules
 **/cdk.out
+**/.aws-sam
 aws.env
