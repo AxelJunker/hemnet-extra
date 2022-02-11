@@ -12,13 +12,13 @@ export class UploadImagesLambdaStack extends cdk.Stack {
       this,
       "UploadImagesHandler",
       {
-        functionName: "upload-images",
+        functionName: "hemnet-upload-images",
         code: lambda.DockerImageCode.fromImageAsset(
           path.join(__dirname, "../..")
         ),
-        // environment: {
-        //   DYNAMODB_TABLE: this.table.tableName,
-        // },
+        environment: {
+          RUST_BACKTRACE: "full",
+        },
       }
     );
 

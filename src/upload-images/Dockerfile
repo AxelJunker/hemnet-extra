@@ -27,7 +27,6 @@ FROM debian:buster-slim
 
 # Copy from the previous build
 COPY --from=build /upload-images/target/release/upload-images /usr/src/upload-images
-# COPY --from=build /holodeck/target/release/holodeck/target/x86_64-unknown-linux-musl/release/holodeck .
 
 # Run the binary
-ENTRYPOINT ["/usr/src/upload-images"]
+CMD ["/usr/src/upload-images"]

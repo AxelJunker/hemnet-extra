@@ -1,14 +1,12 @@
-use lambda_runtime::{run, service_fn, Context, LambdaEvent};
+use lambda_runtime::{run, service_fn, LambdaEvent};
 use log::LevelFilter;
 // use serde::{Deserialize, Serialize};
+use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use reqwest;
 use serde_json::Value;
 use simple_logger::SimpleLogger;
 use std::env;
-// use uuid::Uuid;
-use crate::Error::{RegexCreate, RegexNoCaptureGroup, RegexNoCaptures, RequestError, SetLogger};
-use backtrace::Backtrace;
 use std::error;
 use std::fmt;
 
@@ -40,7 +38,6 @@ use std::fmt;
 
 #[derive(Debug)]
 enum Error {
-    // LambdaRun(String),
     SetLogger(log::SetLoggerError),
     RegexCreate(regex::Error),
     RegexNoCaptures,
@@ -51,17 +48,20 @@ enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            // The wrapped error contains additional information and is available
+            // via the source() method.
             Error::SetLogger(..) => write!(f, "failed to initialize logger"),
             Error::RegexCreate(..) => write!(f, "couldn't create regex"),
             Error::RegexNoCaptures => write!(f, "no captures"),
             Error::RegexNoCaptureGroup => write!(f, "no capture group"),
-            // The wrapped error contains additional information and is available
-            // via the source() method.
             Error::RequestError(err) => write!(f, "request error"),
         }
     }
 }
 
+// The cause is the underlying implementation error type. Is implicitly
+// cast to the trait object `&error::Error`. This works because the
+// underlying type already implements the `Error` trait.
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -69,9 +69,6 @@ impl error::Error for Error {
             Error::RegexCreate(e) => Some(e),
             Error::RegexNoCaptures => None,
             Error::RegexNoCaptureGroup => None,
-            // The cause is the underlying implementation error type. Is implicitly
-            // cast to the trait object `&error::Error`. This works because the
-            // underlying type already implements the `Error` trait.
             Error::RequestError(e) => Some(e),
         }
     }
@@ -99,39 +96,48 @@ impl From<log::SetLoggerError> for Error {
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
     match env::var("AWS_LAMBDA_RUNTIME_API") {
+        // Running in lambda
         Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
-        _ => handler().await,
+        // Running locally
+        _ => handler().await.map_err(Box::from),
     }
 }
 
-async fn handler() -> Result<(), lambda_runtime::Error> {
-    upload_images().await.map_err(|err| Box::from(err))
-}
-
-async fn upload_images() -> Result<(), Error> {
+async fn handler() -> Result<()> {
     // Required to enable CloudWatch error logging by the runtime.
     // Can be replaced with any other method of initializing `log`.
     SimpleLogger::new()
-        .with_utc_timestamps()
+        .without_timestamps()
         .with_level(LevelFilter::Info)
         .init()?;
 
     log::info!("Running upload_images_handler");
 
-    fetch_hemnet_search_key().await?;
+    let result = fetch_hemnet_search_key().await;
+
+    if let Err(err) = result {
+        log::error!("{:?}", err);
+        // panic!("panikkk");
+        // std::process::exit(1);
+    }
+
     Ok(())
 }
 
-async fn fetch_hemnet_search_key() -> Result<String, Error> {
+async fn fetch_hemnet_search_key() -> Result<String> {
     let regex_str = "search_key&quot;:&quot;([a-z0-9]*)&";
     let regex = Regex::new(regex_str)?;
 
-    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=asdf33094966";
+    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=adsf33094966";
     let body = get_body(url).await?;
 
-    let captures = regex.captures(&body).ok_or(RegexNoCaptures)?;
+    let captures = regex
+        .captures(&body)
+        .ok_or(anyhow!("Regex error: No captures"))?;
 
-    let capture_group = captures.get(4).ok_or(RegexNoCaptureGroup)?;
+    let capture_group = captures
+        .get(0)
+        .ok_or(anyhow!("Regex error: Regex no capture group"))?;
 
     let search_key = capture_group.as_str().to_string();
 
@@ -141,10 +147,5 @@ async fn fetch_hemnet_search_key() -> Result<String, Error> {
 }
 
 async fn get_body(url: &str) -> Result<String, reqwest::Error> {
-    let result = reqwest::get(url).await?.error_for_status();
-
-    match result {
-        Ok(response) => response.text().await,
-        Err(err) => Err(err),
-    }
+    reqwest::get(url).await?.error_for_status()?.text().await
 }
