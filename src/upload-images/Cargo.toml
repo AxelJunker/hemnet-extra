@@ -17,6 +17,7 @@ reqwest = { version = "0.11.9", default-features = false, features = ["json", "r
 regex = "1.5.4"
 uuid = "1.0.0-alpha.1"
 anyhow = { version = "1.0.53", features = ["backtrace"] }
+backtrace = "0.3"
 
 [dev-dependencies]
 cargo-watch = "8.1.1"

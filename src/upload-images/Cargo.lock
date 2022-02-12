@@ -2063,6 +2063,7 @@ name = "upload-images"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "backtrace",
  "cargo-watch",
  "lambda_runtime",
  "log",
