@@ -95,13 +95,13 @@ impl From<log::SetLoggerError> for Error {
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
-    Err(lambda_runtime::Error::from("panik"))
-    // match env::var("AWS_LAMBDA_RUNTIME_API") {
-    //     // Running in lambda
-    //     Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
-    //     // Running locally
-    //     _ => handler().await,
-    // }
+    // Err(lambda_runtime::Error::from("panik"))
+    match env::var("AWS_LAMBDA_RUNTIME_API") {
+        // Running in lambda
+        Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
+        // Running locally
+        _ => handler().await,
+    }
 }
 
 async fn handler() -> Result<(), lambda_runtime::Error> {
@@ -117,6 +117,7 @@ async fn handler() -> Result<(), lambda_runtime::Error> {
     let result = fetch_hemnet_search_key().await;
 
     if let Err(err) = result {
+        eprintln!("eprintln: {:?}", err);
         log::error!("{:?}", err);
         // panic!("panikkk");
         // std::process::exit(1);
