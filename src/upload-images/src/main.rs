@@ -1,7 +1,7 @@
 use lambda_runtime::{run, service_fn, LambdaEvent};
 use log::LevelFilter;
 // use serde::{Deserialize, Serialize};
-use anyhow::{anyhow, Context, Result};
+// use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use reqwest;
 use serde_json::Value;
@@ -95,15 +95,16 @@ impl From<log::SetLoggerError> for Error {
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
-    match env::var("AWS_LAMBDA_RUNTIME_API") {
-        // Running in lambda
-        Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
-        // Running locally
-        _ => handler().await.map_err(Box::from),
-    }
+    Err(lambda_runtime::Error::from("panik"))
+    // match env::var("AWS_LAMBDA_RUNTIME_API") {
+    //     // Running in lambda
+    //     Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
+    //     // Running locally
+    //     _ => handler().await,
+    // }
 }
 
-async fn handler() -> Result<()> {
+async fn handler() -> Result<(), lambda_runtime::Error> {
     // Required to enable CloudWatch error logging by the runtime.
     // Can be replaced with any other method of initializing `log`.
     SimpleLogger::new()
@@ -124,7 +125,7 @@ async fn handler() -> Result<()> {
     Ok(())
 }
 
-async fn fetch_hemnet_search_key() -> Result<String> {
+async fn fetch_hemnet_search_key() -> Result<String, lambda_runtime::Error> {
     let regex_str = "search_key&quot;:&quot;([a-z0-9]*)&";
     let regex = Regex::new(regex_str)?;
 
@@ -133,11 +134,11 @@ async fn fetch_hemnet_search_key() -> Result<String> {
 
     let captures = regex
         .captures(&body)
-        .ok_or(anyhow!("Regex error: No captures"))?;
+        .ok_or(lambda_runtime::Error::from("Regex error: No captures"))?;
 
-    let capture_group = captures
-        .get(0)
-        .ok_or(anyhow!("Regex error: Regex no capture group"))?;
+    let capture_group = captures.get(0).ok_or(lambda_runtime::Error::from(
+        "Regex error: Regex no capture group",
+    ))?;
 
     let search_key = capture_group.as_str().to_string();
 
