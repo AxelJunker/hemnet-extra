@@ -12,22 +12,21 @@ COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 
 # Build only the dependencies to cache them
-RUN cargo build
+RUN cargo build --release
 RUN rm src/*.rs
 
 # Copy the source code
 COPY ./src ./src
 
 # Build for release.
-# Don't use `--release` to get readable backtraces in Docker
-RUN rm ./target/debug/deps/upload_images*
-RUN cargo build
+RUN rm ./target/release/deps/upload_images*
+RUN cargo build --release
 
 # The final base image
 FROM debian:buster-slim
 
 # Copy from the previous build
-COPY --from=build /upload-images/target/debug/upload-images /usr/src/upload-images
+COPY --from=build /upload-images/target/release/upload-images /usr/src/upload-images
 
 # Run the binary
 CMD ["/usr/src/upload-images"]
