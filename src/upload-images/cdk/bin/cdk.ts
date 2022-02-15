@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import "source-map-support/register";
-import * as cdk from "@aws-cdk/core";
+import { App } from "aws-cdk-lib";
 import { UploadImagesLambdaStack } from "../lib/cdk-stack";
 
-const app = new cdk.App();
+const app = new App();
 new UploadImagesLambdaStack(app, "UploadImagesLambdaStack", {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
