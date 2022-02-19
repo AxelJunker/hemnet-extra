@@ -13,11 +13,14 @@ serde = "1.0.130"
 serde_json = "1.0.59"
 simple_logger = "2.1.0"
 tokio = "1.16.1"
-reqwest = { version = "0.11.9", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.11.9", default-features = false, features = ["json", "rustls-tls", "stream"] }
 regex = "1.5.4"
 anyhow = { version = "1.0.53", features = ["backtrace"] }
 aws-config = "0.6.0"
 aws-sdk-dynamodb = "0.6.0"
+aws-sdk-s3 = "0.6.0"
+aws-smithy-http = "0.36.0"
+uuid = { version = "0.8.2", features = ["v4"] }
 
 [dev-dependencies]
 cargo-watch = "8.1.1"
