@@ -385,19 +385,19 @@ async fn download_image(image_url: &str) -> Result<(ByteStream)> {
 
 async fn upload_images(s3_client: &aws_sdk_s3::Client, images: Vec<Image>) -> Result<Vec<String>> {
     let mut image_ids = vec![];
-    for Image { id, bytes } in images {
-        upload_image(&s3_client, id, bytes).await?;
-        image_ids.push(id.to_string());
+    for image in images {
+        image_ids.push(image.id.to_string());
+        upload_image(&s3_client, image).await?;
     }
     Ok(image_ids)
 }
 
-async fn upload_image(s3_client: &aws_sdk_s3::Client, id: Uuid, bytes: ByteStream) -> Result<()> {
+async fn upload_image(s3_client: &aws_sdk_s3::Client, image: Image) -> Result<()> {
     s3_client
         .put_object()
-        .body(bytes)
+        .body(image.bytes)
         .bucket(S3_BUCKET_NAME)
-        .key(id.to_string())
+        .key(image.id.to_string())
         .send()
         .await?;
 
