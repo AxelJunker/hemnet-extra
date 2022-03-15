@@ -23,14 +23,14 @@ synth:
 # Run this after changing function code (and you want to run local-invoke)
 .PHONY: build
 build:
-	sam build --template ./cdk/cdk.out/UploadImagesLambdaStack.template.json
+	sam build --template ../../../cdk/cdk.out/UploadImagesLambdaStack.template.json
 
 # Invoke the lambda locally (in Docker)
 .PHONY: local-invoke
 local-invoke:
 	# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-cdk-getting-started.html
 	# TODO: Check if template exists. If not, run `cdk synth` first
-	sam local invoke hemnet-upload-images --no-event --template ./cdk/cdk.out/UploadImagesLambdaStack.template.json
+	sam local invoke hemnet-upload-images --no-event --template ../../../cdk/cdk.out/UploadImagesLambdaStack.template.json
 
 # Invoke the lambda in AWS
 .PHONY: invoke
@@ -45,7 +45,7 @@ clean-cdk:
 # Build and deploy the lambda to AWS
 .PHONY: deploy
 deploy:
-	make clean-cdk && cd cdk && npx cdk deploy
+	make clean-cdk && cd ../../../cdk && npx cdk deploy
 
 .PHONY: deploy-and-invoke
 deploy-and-invoke:

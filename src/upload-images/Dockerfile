@@ -25,6 +25,10 @@ RUN cargo build --release
 # The final base image
 FROM debian:buster-slim
 
+# Needed by rustls-tls
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
+RUN update-ca-certificates
+
 # Copy from the previous build
 COPY --from=build /upload-images/target/release/upload-images /usr/src/upload-images
 
