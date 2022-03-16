@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import { App } from "aws-cdk-lib";
-import { UploadImagesLambdaStack } from "../lib/cdk-stack";
+import { UploadImagesLambdaStack } from "../lib/upload-images-stack";
 
 const app = new App();
 new UploadImagesLambdaStack(app, "UploadImagesLambdaStack", {
