@@ -4,8 +4,8 @@
 FROM rust:1.58-slim as build
 
 # Create a new empty shell project
-RUN USER=root cargo new --bin upload-images
-WORKDIR /upload-images
+RUN USER=root cargo new --bin email-images
+WORKDIR /email-images
 
 # Copy our manifests
 COPY ./Cargo.lock ./Cargo.lock
@@ -19,7 +19,7 @@ RUN rm src/*.rs
 COPY ./src ./src
 
 # Build for release.
-RUN rm ./target/release/deps/upload_images*
+RUN rm ./target/release/deps/email_images*
 RUN cargo build --release
 
 # The final base image
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN update-ca-certificates
 
 # Copy from the previous build
-COPY --from=build /upload-images/target/release/upload-images /usr/src/upload-images
+COPY --from=build /email-images/target/release/email-images /usr/src/email-images
 
 # Run the binary
-CMD ["/usr/src/upload-images"]
+CMD ["/usr/src/email-images"]

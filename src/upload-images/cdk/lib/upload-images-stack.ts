@@ -7,7 +7,7 @@ import { Stack, StackProps, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as path from "path";
 
-export class UploadImagesLambdaStack extends Stack {
+export class UploadImagesStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -28,8 +28,8 @@ export class UploadImagesLambdaStack extends Stack {
       }
     );
 
-    // Schedule
-    const eventRule = new events.Rule(this, "scheduleRule", {
+    // EventBridge schedule rule
+    const eventRule = new events.Rule(this, "ScheduleRule", {
       schedule: events.Schedule.rate(Duration.days(1)),
     });
 

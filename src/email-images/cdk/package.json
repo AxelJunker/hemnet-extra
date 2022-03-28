@@ -21,10 +21,7 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "@aws-cdk/aws-dynamodb": "^1.144.0",
-    "@aws-cdk/aws-events": "^1.144.0",
-    "@aws-cdk/aws-events-targets": "^1.144.0",
-    "@aws-cdk/aws-lambda": "^1.144.0",
+    "@seeebiii/ses-verify-identities": "^4.0.0",
     "aws-cdk-lib": "^2.8.0",
     "constructs": "^10.0.61",
     "source-map-support": "^0.5.21"

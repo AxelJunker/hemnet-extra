@@ -4,3 +4,4 @@
 **/cdk.out
 **/.aws-sam
 aws.env
+**/cdk.context.json

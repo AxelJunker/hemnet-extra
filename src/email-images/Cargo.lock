@@ -823,6 +823,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
+name = "email-images"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aws-config",
+ "aws-sdk-dynamodb",
+ "aws-sdk-s3",
+ "aws-smithy-http",
+ "bytes",
+ "cargo-watch",
+ "lambda_runtime",
+ "log",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "encoding_rs"
 version = "0.8.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2651,28 +2673,6 @@ name = "untrusted"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
-
-[[package]]
-name = "upload-images"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "aws-config",
- "aws-sdk-dynamodb",
- "aws-sdk-s3",
- "aws-smithy-http",
- "bytes",
- "cargo-watch",
- "lambda_runtime",
- "log",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "simple_logger",
- "tokio",
- "uuid",
-]
 
 [[package]]
 name = "url"

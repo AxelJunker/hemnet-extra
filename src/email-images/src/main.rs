@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use aws_sdk_dynamodb::model::{AttributeValue, KeysAndAttributes};
 use aws_smithy_http::byte_stream::ByteStream;
 use bytes::Bytes;
-use lambda_runtime::{run, service_fn, LambdaEvent};
+use lambda_runtime::{run, service_fn, Context, LambdaEvent};
 use log::LevelFilter;
 use regex::Regex;
 use reqwest;
@@ -92,9 +92,26 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 
     let result = match env::var("AWS_LAMBDA_RUNTIME_API") {
         // Running in lambda
-        Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
+        Ok(_) => run(service_fn(handler)).await,
         // Running locally
-        _ => handler().await.map_err(Box::from),
+        _ => {
+            Ok(())
+            // let mockedContext = Context {
+            //     request_id: "1",
+            //     deadline: 0,
+            //     invoked_function_arn: "".to_string(),
+            //     xray_trace_id: "".to_string(),
+            //     client_context: None,
+            //     identity: None,
+            //     env_config: Default::default(),
+            // };
+            // let mockedLambdaEvent = LambdaEvent {
+            //     payload: "hej",
+            //     context: mockedContext,
+            // };
+            //
+            // handler(mockedLambdaEvent).await.map_err(Box::from);
+        }
     };
 
     if let Err(err) = result {
@@ -107,35 +124,36 @@ async fn main() -> Result<(), lambda_runtime::Error> {
     Ok(())
 }
 
-async fn handler() -> Result<()> {
-    println!("Running upload_images_handler");
+async fn handler(event: LambdaEvent<Value>) -> Result<()> {
+    println!("Running upload_email_handler");
+    println!("Event: {:?}", event);
 
-    let aws_config = aws_config::load_from_env().await;
-    let dynamodb_client = aws_sdk_dynamodb::Client::new(&aws_config);
-    let s3_client = aws_sdk_s3::Client::new(&aws_config);
-
-    let search_key = fetch_search_key().await?;
-    println!("Search key: {}", search_key);
-
-    let mut property_ids = fetch_property_ids(&search_key).await?;
-    println!("Property ids: {:?}", property_ids);
-
-    let filtered_property_ids =
-        filter_already_handled_property_ids(&dynamodb_client, &mut property_ids).await?;
-
-    println!("Filtered property ids: {:?}", filtered_property_ids);
-
-    let mut property_options = vec![];
-    for property_id in filtered_property_ids.iter() {
-        let property = get_property_by_property_id(property_id).await?;
-        property_options.push(property);
-    }
-
-    let properties: Properties = property_options.into_iter().flatten().collect();
-    for property in properties {
-        println!("Saving property id: {:?}", property.property_id);
-        upload_images_and_save_property(&s3_client, &dynamodb_client, property).await?;
-    }
+    // let aws_config = aws_config::load_from_env().await;
+    // let dynamodb_client = aws_sdk_dynamodb::Client::new(&aws_config);
+    // let s3_client = aws_sdk_s3::Client::new(&aws_config);
+    //
+    // let search_key = fetch_search_key().await?;
+    // println!("Search key: {}", search_key);
+    //
+    // let mut property_ids = fetch_property_ids(&search_key).await?;
+    // println!("Property ids: {:?}", property_ids);
+    //
+    // let filtered_property_ids =
+    //     filter_already_handled_property_ids(&dynamodb_client, &mut property_ids).await?;
+    //
+    // println!("Filtered property ids: {:?}", filtered_property_ids);
+    //
+    // let mut property_options = vec![];
+    // for property_id in filtered_property_ids.iter() {
+    //     let property = get_property_by_property_id(property_id).await?;
+    //     property_options.push(property);
+    // }
+    //
+    // let properties: Properties = property_options.into_iter().flatten().collect();
+    // for property in properties {
+    //     println!("Saving property id: {:?}", property.property_id);
+    //     upload_images_and_save_property(&s3_client, &dynamodb_client, property).await?;
+    // }
 
     Ok(())
 }
