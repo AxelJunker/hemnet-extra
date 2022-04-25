@@ -1,8 +1,9 @@
 # Create this file with `AWS_PROFILE={aws-profile-name}` if you don't want to prefix all aws related commands
-AWS_ENV_PATH=../../aws.env
+ENV_PATH=../../.env
 
-ifneq ("$(wildcard $(AWS_ENV_PATH))","")
-	include $(AWS_ENV_PATH)
+ifneq ("$(wildcard $(ENV_PATH))","")
+	include $(ENV_PATH)
+	export
 endif
 
 # Run locally (not in Docker)

@@ -3,5 +3,7 @@
 **/node_modules
 **/cdk.out
 **/.aws-sam
-aws.env
+.env
 **/cdk.context.json
+dist
+**/example-events

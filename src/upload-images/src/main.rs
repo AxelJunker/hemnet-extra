@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use aws_sdk_dynamodb::model::{AttributeValue, KeysAndAttributes};
 use aws_smithy_http::byte_stream::ByteStream;
 use bytes::Bytes;
+use dotenvy::dotenv;
 use lambda_runtime::{run, service_fn, LambdaEvent};
 use log::LevelFilter;
 use regex::Regex;
@@ -83,8 +84,6 @@ async fn get(url: &str) -> Result<reqwest::Response, reqwest::Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), lambda_runtime::Error> {
-    // Required to enable CloudWatch error logging by the runtime.
-    // Can be replaced with any other method of initializing `log`.
     SimpleLogger::new()
         .without_timestamps()
         .with_level(LevelFilter::Info)
@@ -94,7 +93,11 @@ async fn main() -> Result<(), lambda_runtime::Error> {
         // Running in lambda
         Ok(_) => run(service_fn(|_: LambdaEvent<Value>| handler())).await,
         // Running locally
-        _ => handler().await.map_err(Box::from),
+        _ => {
+            dotenv().ok();
+
+            handler().await.map_err(Box::from)
+        }
     };
 
     if let Err(err) = result {
@@ -108,13 +111,19 @@ async fn main() -> Result<(), lambda_runtime::Error> {
 }
 
 async fn handler() -> Result<()> {
-    println!("Running upload_images_handler");
+    println!("Running upload-images");
 
     let aws_config = aws_config::load_from_env().await;
     let dynamodb_client = aws_sdk_dynamodb::Client::new(&aws_config);
     let s3_client = aws_sdk_s3::Client::new(&aws_config);
 
-    let search_key = fetch_search_key().await?;
+    let subscription_id = env::var("SUBSCRIPTION_ID")?;
+    println!("sub id: {}", subscription_id);
+
+    let aws_prof = env::var("AWS_PROFILE")?;
+    println!("profile: {}", aws_prof);
+
+    let search_key = fetch_search_key(subscription_id).await?;
     println!("Search key: {}", search_key);
 
     let mut property_ids = fetch_property_ids(&search_key).await?;
@@ -140,9 +149,13 @@ async fn handler() -> Result<()> {
     Ok(())
 }
 
-async fn fetch_search_key() -> Result<String> {
-    let url = "https://www.hemnet.se/bostader?by=creation&order=desc&subscription=33094966";
-    let body = get(url).await?.text().await?;
+async fn fetch_search_key(subscription_id: String) -> Result<String> {
+    let url = format!(
+        "https://www.hemnet.se/bostader?by=creation&order=desc&subscription={}",
+        subscription_id
+    );
+
+    let body = get(&url).await?.text().await?;
 
     let regex_str = "search_key&quot;:&quot;([a-z0-9]*)&";
     let regex = Regex::new(regex_str)?;
@@ -187,6 +200,7 @@ async fn filter_already_handled_property_ids<'a>(
     let mut keys = vec![];
 
     for (property_id, _) in property_ids.iter() {
+        println!("{}", property_id);
         let key = HashMap::from([(
             PROPERTY_ID_FIELD_NAME.to_string(),
             AttributeValue::S(property_id.to_string()),
@@ -216,7 +230,7 @@ async fn filter_already_handled_property_ids<'a>(
             .as_s()
             .map_err(|field| {
                 anyhow!(
-                    "Expected field {} to be a number, got: {:?}",
+                    "Expected field {} to be a string, got: {:?}",
                     PROPERTY_ID_FIELD_NAME,
                     field
                 )

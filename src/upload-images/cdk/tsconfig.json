@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
+    "target": "ES2021",
     "module": "commonjs",
-    "lib": [
-      "es2018"
-    ],
+    "lib": ["es2021"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -19,14 +17,9 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
+    "typeRoots": ["./node_modules/@types"],
     "outDir": "dist"
   },
-  "exclude": [
-    "node_modules",
-    "cdk.out",
-    "dist"
-  ]
+  "include": ["test"],
+  "exclude": ["node_modules", "cdk.out", "dist"]
 }

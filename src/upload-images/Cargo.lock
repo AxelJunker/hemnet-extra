@@ -806,6 +806,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dirs"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca3aa72a6f96ea37bbc5aa912f6788242832f75369bdfdadcb0e38423f100059"
+dependencies = [
+ "dirs-sys",
+]
+
+[[package]]
 name = "dirs-sys"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -814,6 +823,15 @@ dependencies = [
  "libc",
  "redox_users 0.4.0",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "dotenvy"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e851a83c30366fd01d75b913588e95e74a1705c1ecc5d58b1f8e1a6d556525f"
+dependencies = [
+ "dirs 4.0.0",
 ]
 
 [[package]]
@@ -2663,6 +2681,7 @@ dependencies = [
  "aws-smithy-http",
  "bytes",
  "cargo-watch",
+ "dotenvy",
  "lambda_runtime",
  "log",
  "regex",

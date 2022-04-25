@@ -22,6 +22,7 @@ aws-sdk-s3 = "0.6.0"
 aws-smithy-http = "0.36.0"
 uuid = { version = "0.8.2", features = ["v4"] }
 bytes = "1.1.0"
+dotenvy = "0.15.1"
 
 [dev-dependencies]
 cargo-watch = "8.1.1"
