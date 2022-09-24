@@ -2,6 +2,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ses from "aws-cdk-lib/aws-ses";
 import * as sesActions from "aws-cdk-lib/aws-ses-actions";
 import * as sns from "aws-cdk-lib/aws-sns";
@@ -115,5 +116,12 @@ export class EmailImagesStack extends Stack {
       emailImagesLambda,
       "dynamodb:GetItem"
     );
+    
+    // S3
+    const bucketName = "hemnet-property-images";
+
+    const bucket = s3.Bucket.fromBucketName(this, `imported-${bucketName}`, bucketName);
+
+    bucket.grantRead(emailImagesLambda);
   }
 }

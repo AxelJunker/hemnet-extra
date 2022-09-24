@@ -15,23 +15,6 @@ run-watch:
 run:
 	cargo run
 
-# Run this after changing anything in the cdk (and you want to run local-invoke)
-.PHONY: synth
-synth:
-	cdk synth --no-staging	
-
-# Run this after changing function code (and you want to run local-invoke)
-.PHONY: build
-build:
-	sam build --template ../cdk/cdk.out/UploadImagesLambdaStack.template.json
-
-# Invoke the lambda locally (in Docker)
-.PHONY: local-invoke
-local-invoke:
-	# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-cdk-getting-started.html
-	# TODO: Check if template exists. If not, run `cdk synth` first
-	sam local invoke hemnet-upload-images --no-event --template ../cdk/cdk.out/UploadImagesLambdaStack.template.json
-
 # Invoke the lambda in AWS
 .PHONY: invoke
 invoke:

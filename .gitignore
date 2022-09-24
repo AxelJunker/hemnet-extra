@@ -7,3 +7,4 @@
 **/cdk.context.json
 dist
 **/example-events
+.DS_Store

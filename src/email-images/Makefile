@@ -6,7 +6,7 @@ ifneq ("$(wildcard $(ENV_PATH))","")
 	export
 endif
 
-# Run locally (not in Docker)
+# Run locally
 .PHONY: run-watch
 run-watch:
 	cargo watch -x 'run'
@@ -15,28 +15,11 @@ run-watch:
 run:
 	cargo run
 
-# Run this after changing anything in the cdk (and you want to run local-invoke)
-.PHONY: synth
-synth:
-	cdk synth --no-staging	
-
-# Run this after changing function code (and you want to run local-invoke)
-.PHONY: build
-build:
-	sam build --template ../cdk/cdk.out/EmailImagesStack.template.json
-
-# Invoke the lambda locally (in Docker)
-.PHONY: local-invoke
-local-invoke:
-	# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-cdk-getting-started.html
-	# TODO: Check if template exists. If not, run `cdk synth` first
-	sam local invoke hemnet-email-images --no-event --template ../cdk/cdk.out/EmailImagesStack.template.json
-
 # Invoke the lambda in AWS
 .PHONY: invoke
 invoke:
 	# https://dev.to/nicholaschiasson/beginner-s-guide-to-running-rust-on-aws-lambda-277n
-	aws lambda invoke --function-name hemnet-email-images --invocation-type Event /dev/stdout | cat
+	aws lambda invoke --function-name hemnet-email-images --invocation-type Event --cli-binary-format raw-in-base64-out --payload file://example-events/example-1.json /dev/stdout | cat
 
 .PHONY: clean-cdk
 clean-cdk:

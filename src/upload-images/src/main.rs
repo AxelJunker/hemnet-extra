@@ -120,9 +120,6 @@ async fn handler() -> Result<()> {
     let subscription_id = env::var("SUBSCRIPTION_ID")?;
     println!("sub id: {}", subscription_id);
 
-    let aws_prof = env::var("AWS_PROFILE")?;
-    println!("profile: {}", aws_prof);
-
     let search_key = fetch_search_key(subscription_id).await?;
     println!("Search key: {}", search_key);
 
